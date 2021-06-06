@@ -2,7 +2,7 @@ using LinearAlgebra
 
 include("hessenberg_reduction.jl")
 
-function power_method(A::Union{Matrix, Symmetric}, l::Integer)
+function power_method(A::Array, l::Integer)
     # power method 
     n = size(A, 1)
     x = ones(n, 1)
@@ -14,22 +14,24 @@ function power_method(A::Union{Matrix, Symmetric}, l::Integer)
     return λ, x
 end
 
-function power_method_err(A::Union{Matrix, Symmetric}, l::Integer, expected_eigenvalue::Float64)
+function power_method_err(A::Array, l::Integer, expected_eigenvalue::Float64)
     # power method 
-    n = size(A, 1)
-    x = ones(n, 1)
-    Δλ = []
+    n = size(A, 1);
+    x = ones(n, 1);
+    Δλ = [];
+    λ = 0.0;
     for i in 1:l
-        x = A * x
-        x = x / norm(x)
-        push!(Δλ, abs(λ - expected_eigenvalue))
+        x = A * x;
+        x = x / norm(x);
+        λ = (x'*A*x)[1];
+        push!(Δλ, abs(λ - expected_eigenvalue));
     end
-    λ = x'*A*x
+    λ = x'*A*x;
     return λ, x, Δλ
 end
 
 
-function power_method_hessen(A::Union{Matrix, Symmetric}, l::Integer) 
+function power_method_hessen(A::Array, l::Integer) 
     # power method with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A, 1)
@@ -43,7 +45,7 @@ function power_method_hessen(A::Union{Matrix, Symmetric}, l::Integer)
 end
 
 
-function power_method_hessen_err(A::Union{Matrix, Symmetric}, l::Integer, expected_eigenvalue::Float64) 
+function power_method_hessen_err(A::Array, l::Integer, expected_eigenvalue::Float64) 
     # power method with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A, 1)
@@ -58,7 +60,7 @@ function power_method_hessen_err(A::Union{Matrix, Symmetric}, l::Integer, expect
     return λ, x, Δλ
 end
 
-function rayleigh_power_method(A::Union{Matrix, Symmetric}, l::Integer) 
+function rayleigh_power_method(A::Array, l::Integer) 
     # rayleigh power method
     n = size(A, 1);
     x = ones(n, 1);
@@ -80,7 +82,7 @@ function rayleigh_power_method(A::Union{Matrix, Symmetric}, l::Integer)
 end
 
 
-function rayleigh_power_method_hessen(A::Union{Matrix, Symmetric}, l::Integer) 
+function rayleigh_power_method_hessen(A::Array, l::Integer) 
     # rayleigh power method with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A, 1);
