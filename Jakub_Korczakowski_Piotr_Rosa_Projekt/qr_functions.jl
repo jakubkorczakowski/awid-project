@@ -65,7 +65,6 @@ function QR_eigen_hessen(A::Array, l::Integer)
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
-        A = HessenbergReduction(A);
     end
     sort(diag(A))
 end
@@ -78,7 +77,6 @@ function QR_eigen_hessen_err(A::Array, l::Integer, expected_eigenvalues::Vector)
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
-        A = HessenbergReduction(A);
         Λ = sort!(diag(A));
         push!(ΔΛ, abs.(Λ - expected_eigenvalues));
     end
@@ -107,7 +105,6 @@ function QR_eigen_vect_hessen(A::Array, l::Integer)
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
-        A = HessenbergReduction(A);
         E = E * Q;
     end
     sorteigen(diag(A), E)
@@ -160,11 +157,10 @@ function shiftQRc_hessen(A::Array, maxiter=500)  #  QR function that is able to 
     while n>1
         iter=0
         while sort(abs.(A[n,1:n-1]))[end]>tol && iter<maxiter
-                         iter=iter+1
-                         mu=A[n,n]
+            iter=iter+1
+            mu=A[n,n]
             q,r=mgs(A-mu*eye(n))
             A=r*q+mu*eye(n)
-            # A = HessenbergReduction(A)
         end
         if iter<maxiter #block with 1x1
             lam[n]=A[n,n]
@@ -172,8 +168,8 @@ function shiftQRc_hessen(A::Array, maxiter=500)  #  QR function that is able to 
             A=A[1:n,1:n]
         else
             lam=complex(lam)
-                         disc=(A[n-1,n-1]-A[n,n])^2+4*A[n,n-1]*A[n-1,n]
-                         temp=sqrt.(disc+0*im)
+            disc=(A[n-1,n-1]-A[n,n])^2+4*A[n,n-1]*A[n-1,n]
+            temp=sqrt.(disc+0*im)
             lam[n]=(A[n-1,n-1]+A[n,n] +temp)/2
             lam[n-1]=(A[n-1,n-1]+A[n,n]-temp)/2
             n=n-2
@@ -186,28 +182,3 @@ function shiftQRc_hessen(A::Array, maxiter=500)  #  QR function that is able to 
     return lam
 end    
 
-
-function WilkinsonShift( a::Number, b::Number, c::Number )
-    # Calculate Wilkinson's shift for symmetric matrices: 
-    δ = (a-c)/2
-    return c - sign(δ)*b^2/(abs(δ) + sqrt(δ^2+b^2))
-end
-
-
-function QRwithShifts( A::Matrix, iter_number::Int )
-    n = size(A,1)
-    myeigs = zeros(n)
-    if ( n == 1 )
-        myeigs[1] = A[1,1]
-    else
-        I = eye( n )
-        A = HessenbergReduction( A )
-        for i = 1:iter_number
-            mu = WilkinsonShift( A[n-1,n-1], A[n,n], A[n-1,n] )
-            (Q,R) = mgs(A - mu*I)
-            A = R*Q + mu*I
-        end
-        myeigs = [A[n,n] ; QRwithShifts( A[1:n-1, 1:n-1], iter_number )]
-    end
-    return myeigs
-end

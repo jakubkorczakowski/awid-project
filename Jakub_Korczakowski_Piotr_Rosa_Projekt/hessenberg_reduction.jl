@@ -3,7 +3,7 @@ using LinearAlgebra
 function HessenbergReduction( A::Matrix )
     X = copy(A)
     n = size(X, 1)
-    H = A  # TODO Nie rozumiem jaki jest cel tej linii - można ją usunąć?
+    H = A
     if ( n > 2 )
         a1 = X[2:n, 1]
         e1 = zeros(n-1); e1[1] = 1
