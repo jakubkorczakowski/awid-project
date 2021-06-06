@@ -91,7 +91,6 @@ function jacobi_B(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalue
         H[:, i] = c*Hi - s*H[:, j]
         H[:, j] = s*Hi + c*H[:, j]
     end
-#     display(H)
     sorteigen(diag(X), H)
 end
 
@@ -121,6 +120,51 @@ function jacobi_B_hessen(A, l::Integer)  # Jacobi algorithm #2 for computing eig
         H[:, i] = c*Hi - s*H[:, j]
         H[:, j] = s*Hi + c*H[:, j]
     end
-#     display(H)
     sorteigen(diag(X), H)
+end
+
+
+function jacobi_B_no_vect(A, l::Integer)  # Jacobi algorithm #2 for computing only eigenvalues
+    n = size(A,1);
+    X = copy(A);
+    for iter = 1:l
+        i,j = maxst(X);
+        Si = X[:, i]
+        Sj = X[:, j]
+        
+        θ = 0.5*atan(2*Si[j], Sj[j]-Si[i])
+        c = cos(θ)
+        s = sin(θ)
+        
+        X[i, :] = X[:, i] = c*Si - s*Sj
+        X[j, :] = X[:, j] = s*Si + c*Sj
+        X[i,j] = 0
+        X[j,i] = 0
+        X[i,i] = c^2*Si[i] - 2*s*c*Si[j] + s^2*Sj[j]
+        X[j,j] = s^2*Si[i] + 2*s*c*Si[j] + c^2*Sj[j]
+    end
+    sort(diag(X))
+end
+
+function jacobi_B_hessen_no_vect(A, l::Integer)  # Jacobi algorithm #2 for computing only eigenvalues with transformation to Hessenberg form
+    A = HessenbergReduction(A)
+    n = size(A,1);
+    X = copy(A);
+    for iter = 1:l
+        i,j = maxst(X);
+        Si = X[:, i]
+        Sj = X[:, j]
+        
+        θ = 0.5*atan(2*Si[j], Sj[j]-Si[i])
+        c = cos(θ)
+        s = sin(θ)
+        
+        X[i, :] = X[:, i] = c*Si - s*Sj
+        X[j, :] = X[:, j] = s*Si + c*Sj
+        X[i,j] = 0
+        X[j,i] = 0
+        X[i,i] = c^2*Si[i] - 2*s*c*Si[j] + s^2*Sj[j]
+        X[j,j] = s^2*Si[i] + 2*s*c*Si[j] + c^2*Sj[j]
+    end
+    sort(diag(X))
 end
