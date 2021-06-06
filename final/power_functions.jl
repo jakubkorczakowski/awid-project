@@ -2,7 +2,8 @@ using LinearAlgebra
 
 include("hessenberg_reduction.jl")
 
-function potegowa(A, l::Integer)  # power method 
+function power_method(A::Union{Matrix, Symmetric}, l::Integer)
+    # power method 
     n = size(A, 1)
     x = ones(n, 1)
     for i in 1:l
@@ -13,8 +14,23 @@ function potegowa(A, l::Integer)  # power method
     return λ, x
 end
 
+function power_method_err(A::Union{Matrix, Symmetric}, l::Integer, expected_eigenvalue::Float64)
+    # power method 
+    n = size(A, 1)
+    x = ones(n, 1)
+    Δλ = []
+    for i in 1:l
+        x = A * x
+        x = x / norm(x)
+        push!(Δλ, abs(λ - expected_eigenvalue))
+    end
+    λ = x'*A*x
+    return λ, x, Δλ
+end
 
-function potegowa_hessen(A, l::Integer)  # power method with transformation to Hessenberg form
+
+function power_method_hessen(A::Union{Matrix, Symmetric}, l::Integer) 
+    # power method with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A, 1)
     x = ones(n, 1)
@@ -27,7 +43,23 @@ function potegowa_hessen(A, l::Integer)  # power method with transformation to H
 end
 
 
-function rayleigh_power_method(A::Symmetric{Float64}, l::Integer)  # rayleigh power method
+function power_method_hessen_err(A::Union{Matrix, Symmetric}, l::Integer, expected_eigenvalue::Float64) 
+    # power method with transformation to Hessenberg form
+    A = HessenbergReduction(A)
+    n = size(A, 1)
+    x = ones(n, 1)
+    Δλ = []
+    for i in 1:l
+        x = A * x
+        x = x / norm(x)
+        push!(Δλ, abs(λ - expected_eigenvalue))
+    end
+    λ = x'*A*x
+    return λ, x, Δλ
+end
+
+function rayleigh_power_method(A::Union{Matrix, Symmetric}, l::Integer) 
+    # rayleigh power method
     n = size(A, 1);
     x = ones(n, 1);
     mI = eye(n);
@@ -48,7 +80,8 @@ function rayleigh_power_method(A::Symmetric{Float64}, l::Integer)  # rayleigh po
 end
 
 
-function rayleigh_power_method_hessen(A::Symmetric{Float64}, l::Integer)  # rayleigh power method with transformation to Hessenberg form
+function rayleigh_power_method_hessen(A::Union{Matrix, Symmetric}, l::Integer) 
+    # rayleigh power method with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A, 1);
     x = ones(n, 1);
@@ -67,28 +100,4 @@ function rayleigh_power_method_hessen(A::Symmetric{Float64}, l::Integer)  # rayl
     λ = x'*A*x
     y = y / norm(y);
     return λ, y
-end
-
-
-function typed_power_method(A::Symmetric{Float64}, l::Integer)  # power method with types
-    n::Int64 = size(A, 1)
-    x::Array{Float64} = ones(n, 1)
-    for i::Int64 in 1:l
-        x = A * x
-        x = x / norm(x)
-    end
-    λ::Float64 = (x'*A*x)[1]
-    return λ, x
-end
-
-
-function typed_power_method_hessen(A::Symmetric{Float64}, l::Integer)  # power method with types and transformation to Hessenberg form
-    n::Int64 = size(A, 1)
-    x::Array{Float64} = ones(n, 1)
-    for i::Int64 in 1:l
-        x = A * x
-        x = x / norm(x)
-    end
-    λ::Float64 = (x'*A*x)[1]
-    return λ, x
 end

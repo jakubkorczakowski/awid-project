@@ -28,3 +28,7 @@ function sorteigen(evals::Vector{T}, evecs::Matrix{T}) where {T}
     p = sortperm(evals)
     evals[p], evecs[:, p]
 end
+
+function sortcomplex(A::Array)
+    sort(A, lt = (x, y) -> (real(x), imag(x)) < (real(y), imag(y)), dims=1)
+end

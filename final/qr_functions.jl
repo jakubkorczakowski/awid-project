@@ -2,7 +2,7 @@ using LinearAlgebra
 
 include("hessenberg_reduction.jl")
 
-function mgs(A)
+function mgs(A::Array)
     n = size(A,1);
     R = zeros(n, n);
     Q = zeros(n, n);
@@ -18,7 +18,8 @@ function mgs(A)
     return Q,R
 end
 
-function mgramschmidt(A) # gram-schmidt for nxm matrix, used in SVD script
+function mgramschmidt(A::Array) 
+    # gram-schmidt for nxm matrix, used in SVD script
     n, m = size(A)
     Q = zeros(n, m)
     R = zeros(m, m)
@@ -35,7 +36,8 @@ function mgramschmidt(A) # gram-schmidt for nxm matrix, used in SVD script
 end
 
 
-function QR_eigen(A, l::Integer)  # QR function without calculated eigenvectors
+function QR_eigen(A::Array, l::Integer)  
+    # QR function without calculated eigenvectors
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
@@ -44,7 +46,21 @@ function QR_eigen(A, l::Integer)  # QR function without calculated eigenvectors
 end
 
 
-function QR_eigen_hessen(A, l::Integer)  # QR function without calculated eigenvectors with transformation to Hessenberg form
+function QR_eigen_err(A::Array, l::Integer, expected_eigenvalues::Vector)  
+    # QR function without calculated eigenvectors
+    ΔΛ::Array{Array} = [];
+    for k = 1:l
+        Q,R = mgs(A);
+        A = R*Q;
+        Λ = sort!(diag(A));
+        push!(ΔΛ, abs.(Λ - expected_eigenvalues))
+    end
+    sort(diag(A)), ΔΛ
+end
+
+
+function QR_eigen_hessen(A::Array, l::Integer)  
+    # QR function without calculated eigenvectors with transformation to Hessenberg form
     A = HessenbergReduction(A)
     for k = 1:l
         Q,R = mgs(A);
@@ -55,7 +71,23 @@ function QR_eigen_hessen(A, l::Integer)  # QR function without calculated eigenv
 end
 
 
-function QR_eigen_vect(A, l::Integer)  # QR function calculating eigenvectors
+function QR_eigen_hessen_err(A::Array, l::Integer, expected_eigenvalues::Vector)  
+    # QR function without calculated eigenvectors with transformation to Hessenberg form
+    ΔΛ::Array{Array} = [];
+    A = HessenbergReduction(A)
+    for k = 1:l
+        Q,R = mgs(A);
+        A = R*Q;
+        A = HessenbergReduction(A);
+        Λ = sort!(diag(A));
+        push!(ΔΛ, abs.(Λ - expected_eigenvalues));
+    end
+    sort(diag(A)), ΔΛ
+end
+
+
+function QR_eigen_vect(A::Array, l::Integer)  
+    # QR function calculating eigenvectors
     E = I(size(A,1))
     Q,R = mgs(A)
     for k = 1:l
@@ -63,13 +95,12 @@ function QR_eigen_vect(A, l::Integer)  # QR function calculating eigenvectors
         A = R*Q;
         E = E * Q
     end
-    # display(E)  # to jest macierz wektorów własnych
     sorteigen(diag(A), E)
-    # diag(A), E
 end
 
 
-function QR_eigen_vect_hessen(A, l::Integer)  # QR function calculating eigenvectors with transformation to Hessenberg form
+function QR_eigen_vect_hessen(A::Array, l::Integer)  
+    # QR function calculating eigenvectors with transformation to Hessenberg form
     A = HessenbergReduction(A)
     E = I(size(A,1))
     Q,R = mgs(A)
@@ -83,7 +114,8 @@ function QR_eigen_vect_hessen(A, l::Integer)  # QR function calculating eigenvec
 end
 
 
-function shiftQRc(A::Array, maxiter=500)  #  QR function that is able to calculate complex eigenvalues
+function shiftQRc(A::Array, maxiter=500)  
+    #  QR function that is able to calculate complex eigenvalues
     tol=1e-14
     m=size(A,1)
     lam=zeros(m,1)
@@ -163,52 +195,19 @@ end
 
 
 function QRwithShifts( A::Matrix, iter_number::Int )
-   # The QR algorithm for symmetric A with Rayleigh shifts and Hessenberg reduction. Please use eigvals() in 
-   # Julia for serious applications.
     n = size(A,1)
     myeigs = zeros(n)
     if ( n == 1 )
         myeigs[1] = A[1,1]
     else
         I = eye( n )
-        # Reduction to Hessenberg form:
         A = HessenbergReduction( A )
-        # Let's start the shifted QR algorithm with 
-#         while( norm(A[n,n-1]) > 1e-10 )
         for i = 1:iter_number
             mu = WilkinsonShift( A[n-1,n-1], A[n,n], A[n-1,n] )
-            # This line should use faster Hessenberg reduction:
             (Q,R) = mgs(A - mu*I)
-            # This line needs speeding up, currently O(n^3) operations!: 
             A = R*Q + mu*I
         end
-        # Deflation and recurse:
         myeigs = [A[n,n] ; QRwithShifts( A[1:n-1, 1:n-1], iter_number )]
-    end
-    return myeigs
-end
-
-
-function QRwithoutShifts( A::Matrix, iter_number::Int )
-   # The QR algorithm for symmetric A with Rayleigh shifts and Hessenberg reduction. Please use eigvals() in 
-   # Julia for serious applications.
-    n = size(A,1)
-    myeigs = zeros(n)
-    if ( n == 1 )
-        myeigs[1] = A[1,1]
-    else
-        I = eye( n )
-        # Reduction to Hessenberg form:
-        A = HessenbergReduction( A )
-        # Let's start the shifted QR algorithm with 
-#         while( norm(A[n,n-1]) > 1e-10 )
-        for i = 1:iter_number
-            (Q,R) = mgs(A)
-            # This line needs speeding up, currently O(n^3) operations!: 
-            A = R*Q
-        end
-        # Deflation and recurse:
-        myeigs = [A[n,n] ; QRwithoutShifts( A[1:n-1, 1:n-1], iter_number)]
     end
     return myeigs
 end
