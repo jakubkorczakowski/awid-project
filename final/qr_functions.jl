@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 include("hessenberg_reduction.jl")
 
 function mgs(A)
@@ -16,13 +18,29 @@ function mgs(A)
     return Q,R
 end
 
+function mgramschmidt(A) # gram-schmidt for nxm matrix, used in SVD script
+    n, m = size(A)
+    Q = zeros(n, m)
+    R = zeros(m, m)
+    for j = 1:m
+        v = A[:,j]
+        for k = 1:j-1
+            R[k,j] = dot(Q[:,k]',v)
+            v -= R[k,j]*Q[:,k]
+        end
+        R[j,j] = norm(v)
+        Q[:,j] = v/R[j,j]
+    end
+    return Q, R
+end
+
 
 function QR_eigen(A, l::Integer)  # QR function without calculated eigenvectors
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
     end
-    A
+    sort(diag(A))
 end
 
 
@@ -31,8 +49,9 @@ function QR_eigen_hessen(A, l::Integer)  # QR function without calculated eigenv
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
+        A = HessenbergReduction(A);
     end
-    A
+    sort(diag(A))
 end
 
 
@@ -44,8 +63,9 @@ function QR_eigen_vect(A, l::Integer)  # QR function calculating eigenvectors
         A = R*Q;
         E = E * Q
     end
-    display(E)  # to jest macierz wektorów własnych
-    A
+    # display(E)  # to jest macierz wektorów własnych
+    sorteigen(diag(A), E)
+    # diag(A), E
 end
 
 
@@ -56,10 +76,10 @@ function QR_eigen_vect_hessen(A, l::Integer)  # QR function calculating eigenvec
     for k = 1:l
         Q,R = mgs(A);
         A = R*Q;
-        E = E * Q
+        A = HessenbergReduction(A);
+        E = E * Q;
     end
-    display(E)  # that is a matrix of eigenvectors
-    A
+    sorteigen(diag(A), E)
 end
 
 
@@ -72,8 +92,8 @@ function shiftQRc(A::Array, maxiter=500)  #  QR function that is able to calcula
     while n>1
         iter=0
         while sort(abs.(A[n,1:n-1]))[end]>tol && iter<maxiter
-                         iter=iter+1
-                         mu=A[n,n]
+            iter=iter+1
+            mu=A[n,n]
             q,r=mgs(A-mu*eye(n))
             A=r*q+mu*eye(n)
         end
@@ -83,8 +103,8 @@ function shiftQRc(A::Array, maxiter=500)  #  QR function that is able to calcula
             A=A[1:n,1:n]
         else
             lam=complex(lam)
-                         disc=(A[n-1,n-1]-A[n,n])^2+4*A[n,n-1]*A[n-1,n]
-                         temp=sqrt.(disc+0*im)
+            disc=(A[n-1,n-1]-A[n,n])^2+4*A[n,n-1]*A[n-1,n]
+            temp=sqrt.(disc+0*im)
             lam[n]=(A[n-1,n-1]+A[n,n] +temp)/2
             lam[n-1]=(A[n-1,n-1]+A[n,n]-temp)/2
             n=n-2
@@ -99,7 +119,7 @@ end
 
 
 function shiftQRc_hessen(A::Array, maxiter=500)  #  QR function that is able to calculate complex eigenvalues with transformation to Hessenberg form
-    A = HessenbergReduction(A)
+    A = HessenbergReduction(A);
     tol=1e-14
     m=size(A,1)
     lam=zeros(m,1)
@@ -112,6 +132,7 @@ function shiftQRc_hessen(A::Array, maxiter=500)  #  QR function that is able to 
                          mu=A[n,n]
             q,r=mgs(A-mu*eye(n))
             A=r*q+mu*eye(n)
+            # A = HessenbergReduction(A)
         end
         if iter<maxiter #block with 1x1
             lam[n]=A[n,n]

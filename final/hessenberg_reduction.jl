@@ -1,6 +1,6 @@
 using LinearAlgebra
 
-function HessenbergReduction( A::Matrix )
+function HessenbergReduction( A::Union{Matrix, Symmetric} )
     n = size(A, 1)
     H = A
     if ( n > 2 )
@@ -21,4 +21,9 @@ end
 
 function eye(n)
     return Matrix{Float64}(I,n,n)
+end
+
+function sorteigen(evals::Vector{T}, evecs::Matrix{T}) where {T}
+    p = sortperm(evals)
+    evals[p], evecs[:, p]
 end

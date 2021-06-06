@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 include("hessenberg_reduction.jl")
 
 function potegowa(A, l::Integer)  # power method 
@@ -16,7 +18,7 @@ function potegowa_hessen(A, l::Integer)  # power method with transformation to H
     A = HessenbergReduction(A)
     n = size(A, 1)
     x = ones(n, 1)
-    for i in 1:ls
+    for i in 1:l
         x = A * x
         x = x / norm(x)
     end

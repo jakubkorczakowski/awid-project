@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 include("hessenberg_reduction.jl")
 
 function maxst(A)  # function used for locating maximum value of input matrix
@@ -36,7 +38,7 @@ function jacobi_A(A, l::Integer)  # Jacobi algorithm #1 for computing eigenvalue
         R[t,s] = sint;
         A = R'*A*R;
     end
-    return A
+    sort(diag(A))
 end
 
 function jacobi_A_hessen(A, l::Integer)  # Jacobi algorithm #1 for computing eigenvalues with transformation to Hessenberg form 
@@ -59,7 +61,7 @@ function jacobi_A_hessen(A, l::Integer)  # Jacobi algorithm #1 for computing eig
         R[t,s] = sint;
         A = R'*A*R;
     end
-    return A
+    sort(diag(A))
 end
 
 
@@ -67,6 +69,7 @@ end
 function jacobi_B(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalues
     n = size(A,1);
     X = copy(A);
+    # X = hcat(A);
     H = eye(n);  # H is a eigenvectors matrix
     for iter = 1:l
         i,j = maxst(X);
@@ -89,7 +92,7 @@ function jacobi_B(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalue
         H[:, j] = s*Hi + c*H[:, j]
     end
 #     display(H)
-    return X
+    sorteigen(diag(X), H)
 end
 
 
@@ -119,5 +122,5 @@ function jacobi_B_hessen(A, l::Integer)  # Jacobi algorithm #2 for computing eig
         H[:, j] = s*Hi + c*H[:, j]
     end
 #     display(H)
-    return X
+    sorteigen(diag(X), H)
 end
