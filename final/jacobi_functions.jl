@@ -66,7 +66,7 @@ end
 
 
 
-function jacobi_B(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalues
+function jacobi_B_vect(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalues
     n = size(A,1);
     X = copy(A);
     # X = hcat(A);
@@ -95,7 +95,7 @@ function jacobi_B(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalue
 end
 
 
-function jacobi_B_hessen(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalues with transformation to Hessenberg form
+function jacobi_B_vect_hessen(A, l::Integer)  # Jacobi algorithm #2 for computing eigenvalues with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A,1);
     X = copy(A);
@@ -124,7 +124,7 @@ function jacobi_B_hessen(A, l::Integer)  # Jacobi algorithm #2 for computing eig
 end
 
 
-function jacobi_B_no_vect(A, l::Integer)  # Jacobi algorithm #2 for computing only eigenvalues
+function jacobi_B(A, l::Integer)  # Jacobi algorithm #2 for computing only eigenvalues
     n = size(A,1);
     X = copy(A);
     for iter = 1:l
@@ -146,7 +146,7 @@ function jacobi_B_no_vect(A, l::Integer)  # Jacobi algorithm #2 for computing on
     sort(diag(X))
 end
 
-function jacobi_B_hessen_no_vect(A, l::Integer)  # Jacobi algorithm #2 for computing only eigenvalues with transformation to Hessenberg form
+function jacobi_B_hessen(A, l::Integer)  # Jacobi algorithm #2 for computing only eigenvalues with transformation to Hessenberg form
     A = HessenbergReduction(A)
     n = size(A,1);
     X = copy(A);
